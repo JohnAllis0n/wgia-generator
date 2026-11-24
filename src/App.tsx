@@ -99,6 +99,16 @@ export default function App() {
         <div className="w-full max-w-sm">
           <PlacesInput places={places} onChange={setPlaces} />
         </div>
+        <Card size="sm" className="w-full">
+          <CardContent>
+            <p className="text-center text-sm text-muted-foreground">
+              Created By John Alli$son
+            </p>
+            <p className="text-center text-sm text-muted-foreground">
+              Not affiliated with Slayyyter or Sony Music Entertainment.
+            </p>
+          </CardContent>
+        </Card>
       </section>
     </main>
   )
