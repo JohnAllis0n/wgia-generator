@@ -1,0 +1,29 @@
+export const DEFAULT_PLACES = ['America']
+
+/** Place lists prefilled when the page is opened at /<name>. */
+const PRESETS: Record<string, string[]> = {
+  ellis: [
+    'The Avenues',
+    'Bransholm',
+    'Orchard Park',
+    'Cottingham',
+    'Willerby',
+    'Beverley',
+    'Greatfield',
+    'Gypsyville',
+    'Hessle',
+    'Kingswood',
+    'Southcoats',
+    'Sutton',
+    'Longhill',
+  ],
+}
+
+/**
+ * Returns the preset for a URL path such as "/ellis" (case-insensitive,
+ * trailing slash allowed), or the default places if there isn't one.
+ */
+export function placesForPath(pathname: string) {
+  const name = pathname.replace(/^\/+|\/+$/g, '').toLowerCase()
+  return [...(PRESETS[name] ?? DEFAULT_PLACES)]
+}
