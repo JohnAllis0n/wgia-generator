@@ -36,10 +36,52 @@ export interface CardOptions {
 export interface CardLine {
   text: string
   size: number
+  /** True for the lines that make up the location (the typed part). */
+  isLocation?: boolean
 }
+
+/** Which part of the location to show, for the typing animation. */
+export interface CardTyping {
+  /** Number of location characters to draw (spaces between lines count). */
+  visible: number
+  /** Whether to draw the caret after the last visible character. */
+  caret: boolean
+}
+
+/** Caret size as fractions of the font size, and its lean to match the font. */
+const CARET_WIDTH = 0.09
+const CARET_GAP = 0.05
+/**
+ * How far the caret reaches above the capitals and below the baseline. The
+ * top is also clamped to stay clear of the line above (see drawCaret).
+ */
+const CARET_ABOVE_CAPS = 0.2
+const CARET_BELOW_BASELINE = 0.05
+/** Minimum space between the caret's top and the line above's baseline. */
+const CARET_CLEARANCE = 0.03
+const CARET_SLANT = Math.tan((12 * Math.PI) / 180)
 
 export function cardFont(size: number) {
   return `${size}px "${CARD_FONT}"`
+}
+
+/**
+ * The location exactly as the card shows it: single-spaced, upper case, and
+ * with every S swapped for $ to match "WOR$T".
+ */
+export function locationText(location: string) {
+  return location
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(' ')
+    .toUpperCase()
+    .replaceAll('S', '$')
+}
+
+/** Number of characters in the location as the card shows it. */
+export function locationLength(location: string) {
+  return Array.from(locationText(location)).length
 }
 
 /** Width of text including the oblique overhang on the right. */
@@ -111,20 +153,78 @@ export function layoutCard(
   const headlineSize = Math.min(
     ...HEADLINE_LINES.map((text) => fitFontSize(ctx, text, MAX_FONT_SIZE)),
   )
-  const location = options.location.trim().toUpperCase() || EMPTY_LOCATION
+  const location = locationText(options.location) || EMPTY_LOCATION
 
   return [
     { text: 'WOR$T', size: headlineSize },
     { text: `${options.subject.toUpperCase()} IN`, size: headlineSize },
-    ...layoutLocation(ctx, location, headlineSize),
+    ...layoutLocation(ctx, location, headlineSize).map((line) => ({
+      ...line,
+      isLocation: true,
+    })),
   ]
 }
 
-export function drawCard(ctx: CanvasRenderingContext2D, options: CardOptions) {
+/**
+ * Cuts the location lines down to the first `visible` characters, and says
+ * which line the caret belongs on. Lines are joined by single spaces, so the
+ * space at each wrap counts as one character.
+ */
+function typedLines(lines: CardLine[], visible: number) {
+  let start = 0
+  let caretLine = -1
+  const texts = lines.map((line, i) => {
+    if (!line.isLocation) return line.text
+    const chars = Array.from(line.text)
+    if (caretLine === -1 || start <= visible) caretLine = i
+    const shown = chars.slice(0, Math.max(0, visible - start)).join('')
+    start += chars.length + 1
+    return shown
+  })
+  return { texts, caretLine }
+}
+
+/**
+ * Draws a caret leaning to match the oblique font. It crosses the baseline
+ * at x and reaches beyond the capitals above and below, like a text cursor.
+ * It never reaches above `limitTop`, so it can't touch the line above.
+ * Expects ctx.font to already be set to the line's font.
+ */
+function drawCaret(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  baseline: number,
+  size: number,
+  limitTop: number,
+) {
+  const width = size * CARET_WIDTH
+  const capHeight = ctx.measureText('H').actualBoundingBoxAscent
+  const top = Math.max(baseline - capHeight - size * CARET_ABOVE_CAPS, limitTop)
+  const bottom = baseline + size * CARET_BELOW_BASELINE
+  // Horizontal position of the caret's left edge at height y.
+  const leftAt = (y: number) => x + (baseline - y) * CARET_SLANT
+  ctx.beginPath()
+  ctx.moveTo(leftAt(bottom), bottom)
+  ctx.lineTo(leftAt(bottom) + width, bottom)
+  ctx.lineTo(leftAt(top) + width, top)
+  ctx.lineTo(leftAt(top), top)
+  ctx.closePath()
+  ctx.fill()
+}
+
+export function drawCard(
+  ctx: CanvasRenderingContext2D,
+  options: CardOptions,
+  typing?: CardTyping,
+) {
   ctx.fillStyle = CARD_BACKGROUND
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
 
+  // Lay out using the full location, so nothing shifts while it's typed.
   const lines = layoutCard(ctx, options)
+  const { texts, caretLine } = typing
+    ? typedLines(lines, typing.visible)
+    : { texts: lines.map((line) => line.text), caretLine: -1 }
 
   // The gap above a line is sized from the line before it, so a small line
   // under a big one doesn't sit cramped against it. Lines of equal size end
@@ -145,11 +245,21 @@ export function drawCard(ctx: CanvasRenderingContext2D, options: CardOptions) {
   ctx.textBaseline = 'alphabetic'
   lines.forEach((line, i) => {
     const baseline = top + baselines[i]
+    const text = texts[i]
     ctx.font = cardFont(line.size)
     // Centre on the visible ink rather than the advance width, so the
     // oblique lean doesn't pull the text off-centre.
-    const m = ctx.measureText(line.text)
-    const x = (CARD_WIDTH - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft)) / 2
-    ctx.fillText(line.text, x, baseline)
+    const m = ctx.measureText(text)
+    const x = text
+      ? (CARD_WIDTH - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft)) / 2
+      : CARD_WIDTH / 2
+    if (text) ctx.fillText(text, x, baseline)
+
+    if (typing?.caret && i === caretLine) {
+      const caretX = text ? x + m.width + line.size * CARET_GAP : x
+      const limitTop =
+        i > 0 ? top + baselines[i - 1] + line.size * CARET_CLEARANCE : -Infinity
+      drawCaret(ctx, caretX, baseline, line.size, limitTop)
+    }
   })
 }

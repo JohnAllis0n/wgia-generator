@@ -19,8 +19,7 @@ export default function App() {
   return (
     <div className="min-h-svh">
       <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col items-center justify-center gap-6 p-4">
-        {/* Stage 4 will cycle through every place; for now show the first. */}
-        <CardPreview subject={subject} location={places[0] ?? ''} color={color} />
+        <CardPreview subject={subject} color={color} places={places} />
 
         <ButtonGroup aria-label="Card options">
           {SUBJECTS.map((s) => (
