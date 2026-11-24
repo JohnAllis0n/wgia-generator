@@ -13,13 +13,28 @@ interface CardPreviewProps {
   color: string
   /** Places to cycle through. With none, the card shows a placeholder. */
   places: string[]
+  /** Called with the index of the place on screen whenever it changes. */
+  onPlaceChange?: (index: number) => void
+  /** URL of the background image, or undefined for plain black. */
+  background?: string
 }
 
-export function CardPreview({ subject, color, places }: CardPreviewProps) {
+export function CardPreview({
+  subject,
+  color,
+  places,
+  onPlaceChange,
+  background,
+}: CardPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // When the current cycle started. Reset only when the places change, so
   // switching subject or colour doesn't restart the animation.
   const startRef = useRef(0)
+  // Kept in a ref so a new callback each render doesn't restart the animation.
+  const onPlaceChangeRef = useRef(onPlaceChange)
+  useEffect(() => {
+    onPlaceChangeRef.current = onPlaceChange
+  })
 
   useEffect(() => {
     startRef.current = performance.now()
@@ -29,14 +44,19 @@ export function CardPreview({ subject, color, places }: CardPreviewProps) {
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx) return
 
+    // With a background image, the <img> below shows it (animated GIFs play
+    // natively there), so the canvas only draws the text on a clear layer.
+    const layer = background ? 'transparent' : undefined
+
     const lengths = places.map(locationLength)
     let frameId = 0
     let lastKey = ''
+    let lastIndex = -1
     let cancelled = false
 
     const tick = (now: number) => {
       if (places.length === 0) {
-        drawCard(ctx, { subject, color, location: '' })
+        drawCard(ctx, { subject, color, location: '' }, undefined, layer)
         return // Nothing to animate.
       }
       const frame = typingFrameAt(lengths, now - startRef.current)
@@ -44,7 +64,11 @@ export function CardPreview({ subject, color, places }: CardPreviewProps) {
       const key = `${frame.index}|${frame.visible}|${frame.caret}`
       if (key !== lastKey) {
         lastKey = key
-        drawCard(ctx, { subject, color, location: places[frame.index] }, frame)
+        drawCard(ctx, { subject, color, location: places[frame.index] }, frame, layer)
+        if (frame.index !== lastIndex) {
+          lastIndex = frame.index
+          onPlaceChangeRef.current?.(frame.index)
+        }
       }
       if (!frame.done) frameId = requestAnimationFrame(tick)
     }
@@ -63,14 +87,24 @@ export function CardPreview({ subject, color, places }: CardPreviewProps) {
       cancelled = true
       cancelAnimationFrame(frameId)
     }
-  }, [subject, color, places])
+  }, [subject, color, places, background])
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={CARD_WIDTH}
-      height={CARD_HEIGHT}
-      className="aspect-9/16 h-auto w-full max-w-[calc(70svh*9/16)] rounded-lg shadow-lg"
-    />
+    <div className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg">
+      {background && (
+        <img
+          key={background}
+          src={background}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
+      <canvas
+        ref={canvasRef}
+        width={CARD_WIDTH}
+        height={CARD_HEIGHT}
+        className="absolute inset-0 size-full"
+      />
+    </div>
   )
 }

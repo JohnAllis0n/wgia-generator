@@ -166,6 +166,23 @@ export function layoutCard(
 }
 
 /**
+ * Baseline of each line, measured from the first line's cap top. The gap
+ * above a line is sized from the line before it, so a small line under a
+ * big one doesn't sit cramped against it. Lines of equal size end up
+ * LINE_HEIGHT apart.
+ */
+function stackBaselines(lines: CardLine[]) {
+  const baselines: number[] = []
+  let y = 0
+  lines.forEach((line, i) => {
+    if (i > 0) y += lines[i - 1].size * (LINE_HEIGHT - CAP_HEIGHT)
+    y += line.size * CAP_HEIGHT
+    baselines.push(y)
+  })
+  return baselines
+}
+
+/**
  * Cuts the location lines down to the first `visible` characters, and says
  * which line the caret belongs on. Lines are joined by single spaces, so the
  * space at each wrap counts as one character.
@@ -212,13 +229,37 @@ function drawCaret(
   ctx.fill()
 }
 
+/**
+ * What goes behind the text: an image (scaled to cover the card), plain
+ * black (undefined), or nothing at all ('transparent'), for when the live
+ * preview shows the background as a separate element underneath.
+ */
+export type CardBackground = HTMLImageElement | 'transparent' | undefined
+
+/** Draws an image scaled to cover the whole card, cropping the overflow evenly. */
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
+  const scale = Math.max(
+    CARD_WIDTH / image.naturalWidth,
+    CARD_HEIGHT / image.naturalHeight,
+  )
+  const width = image.naturalWidth * scale
+  const height = image.naturalHeight * scale
+  ctx.drawImage(image, (CARD_WIDTH - width) / 2, (CARD_HEIGHT - height) / 2, width, height)
+}
+
 export function drawCard(
   ctx: CanvasRenderingContext2D,
   options: CardOptions,
   typing?: CardTyping,
+  background?: CardBackground,
 ) {
-  ctx.fillStyle = CARD_BACKGROUND
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+  if (background === 'transparent') {
+    ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+  } else {
+    ctx.fillStyle = CARD_BACKGROUND
+    ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+    if (background) drawCover(ctx, background)
+  }
 
   // Lay out using the full location, so nothing shifts while it's typed.
   const lines = layoutCard(ctx, options)
@@ -226,19 +267,14 @@ export function drawCard(
     ? typedLines(lines, typing.visible)
     : { texts: lines.map((line) => line.text), caretLine: -1 }
 
-  // The gap above a line is sized from the line before it, so a small line
-  // under a big one doesn't sit cramped against it. Lines of equal size end
-  // up LINE_HEIGHT apart.
-  const gapAfter = (line: CardLine) => line.size * (LINE_HEIGHT - CAP_HEIGHT)
-  const baselines: number[] = []
-  let y = 0
-  lines.forEach((line, i) => {
-    if (i > 0) y += gapAfter(lines[i - 1])
-    y += line.size * CAP_HEIGHT
-    baselines.push(y)
-  })
-  // Centre the block vertically: from the first cap top to the last baseline.
-  const top = (CARD_HEIGHT - y) / 2
+  const baselines = stackBaselines(lines)
+  // Keep the headline in the same place for every location: position the
+  // block as if the location were one line at headline size, centred. Longer
+  // (wrapped) locations then extend downwards and shorter ones sit a little
+  // higher, but "WOR$T / GIRL IN" never moves between places.
+  const headline = lines.filter((line) => !line.isLocation)
+  const reference = [...headline, { text: '', size: headline[0].size }]
+  const top = (CARD_HEIGHT - stackBaselines(reference).at(-1)!) / 2
 
   ctx.fillStyle = options.color
   ctx.textAlign = 'left'
