@@ -1,4 +1,4 @@
-export const DEFAULT_PLACES = ['America']
+export const DEFAULT_PLACES = ['Pop³', 'America']
 
 /** Place lists prefilled when the page is opened at /<name>. */
 const PRESETS: Record<string, string[]> = {
