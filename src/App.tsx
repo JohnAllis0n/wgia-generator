@@ -102,7 +102,6 @@ export default function App() {
         <Card size="sm" className="w-full">
           <CardContent>
             <p className="text-center text-sm text-muted-foreground">
-              Created By John Alli$son
               Created By John Alli$on
             </p>
             <p className="text-center text-sm text-muted-foreground">
