@@ -3,6 +3,17 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/*
+ * Card font. This is a patched copy of public/Futura-Bold Oblique.ttf:
+ * the original has maxp.maxZones = 3, which browsers reject (only 1 or 2
+ * are valid), so the copy sets it to 2.
+ */
+@font-face {
+  font-family: "Futura Bold Oblique";
+  src: url("/fonts/futura-bold-oblique.ttf") format("truetype");
+  font-display: block;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
