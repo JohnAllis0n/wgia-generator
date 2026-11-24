@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { BackgroundPicker } from '@/components/background-picker'
 import { CardPreview } from '@/components/card-preview'
 import { ExportButtons } from '@/components/export-buttons'
+import { PageHeading } from '@/components/page-heading'
 import { PlacesInput } from '@/components/places-input'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
+import { usePrefetchBackgrounds } from '@/hooks/use-prefetch-backgrounds'
 import { useTintedFavicon } from '@/hooks/use-tinted-favicon'
 import { BACKGROUNDS, DEFAULT_BACKGROUND_INDEX } from '@/lib/backgrounds'
 import { COLORS, SUBJECTS, type CardColor, type Subject } from '@/lib/options'
@@ -22,6 +24,7 @@ export default function App() {
   const background = BACKGROUNDS[backgroundIndex]
 
   useTintedFavicon(color)
+  usePrefetchBackgrounds(backgroundIndex)
 
   return (
     <main className="min-h-svh md:grid md:grid-cols-2">
@@ -35,6 +38,8 @@ export default function App() {
         aria-label="Preview"
         className="flex min-h-[85svh] flex-col items-center justify-center gap-3 p-4 md:sticky md:top-0 md:h-svh md:min-h-0"
       >
+        {/* On phones the heading sits above the card; on desktop, above the controls. */}
+        <PageHeading className="mb-1 md:hidden" />
         <CardPreview
           subject={subject}
           color={color}
@@ -47,8 +52,10 @@ export default function App() {
 
       <section
         aria-label="Options"
-        className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 px-4 pb-10 md:min-h-svh md:justify-center md:py-10"
+        className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 px-4 pb-10 md:min-h-svh md:max-w-xl md:justify-center md:py-10"
       >
+        <PageHeading className="hidden md:block" />
+
         <ButtonGroup aria-label="Card options">
           {SUBJECTS.map((s) => (
             <Button
@@ -89,7 +96,9 @@ export default function App() {
           background={background}
         />
 
-        <PlacesInput places={places} onChange={setPlaces} />
+        <div className="w-full max-w-sm">
+          <PlacesInput places={places} onChange={setPlaces} />
+        </div>
       </section>
     </main>
   )

@@ -17,12 +17,13 @@ export function BackgroundPicker({ index, onChange }: BackgroundPickerProps) {
   const step = (delta: number) => onChange((index + delta + count) % count)
 
   return (
-    <ButtonGroup aria-label="Background">
+    // Same width as the card (--card-width is set by CardPreview); the name
+    // fills the middle, so the < and > buttons never move as names change.
+    <ButtonGroup aria-label="Background" className="w-(--card-width)">
       <Button variant="outline" size="icon" aria-label="Previous background" onClick={() => step(-1)}>
         <ChevronLeftIcon />
       </Button>
-      {/* Fixed width, so the < and > buttons don't move as names change length. */}
-      <ButtonGroupText className="w-44 justify-center tabular-nums" aria-live="polite">
+      <ButtonGroupText className="min-w-0 flex-1 justify-center tabular-nums" aria-live="polite">
         <span className="truncate">{backgroundLabel(BACKGROUNDS[index])}</span>
         <span className="shrink-0 text-muted-foreground">
           {index + 1}/{count}

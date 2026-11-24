@@ -145,14 +145,43 @@ function layoutLocation(
   return [{ text: oneLine, size: oneLineSize }]
 }
 
+/**
+ * Layouts already worked out, keyed by subject and location. Fitting and
+ * wrapping a location takes many text measurements, and the preview redraws
+ * several times a second while typing, so each layout is computed once.
+ */
+const layoutCache = new Map<string, CardLine[]>()
+const LAYOUT_CACHE_LIMIT = 200
+
 /** Works out every line of text on the card and its font size. */
 export function layoutCard(
   ctx: CanvasRenderingContext2D,
   options: Pick<CardOptions, 'subject' | 'location'>,
 ): CardLine[] {
-  const headlineSize = Math.min(
-    ...HEADLINE_LINES.map((text) => fitFontSize(ctx, text, MAX_FONT_SIZE)),
-  )
+  // Measurements change once the font loads, so only cache real ones.
+  const fontLoaded = document.fonts.check(cardFont(100))
+  const key = `${options.subject}\n${options.location}`
+  const cached = fontLoaded ? layoutCache.get(key) : undefined
+  if (cached) return cached
+
+  const lines = computeLayout(ctx, options)
+  if (fontLoaded) {
+    if (layoutCache.size >= LAYOUT_CACHE_LIMIT) layoutCache.clear()
+    layoutCache.set(key, lines)
+  }
+  return lines
+}
+
+/** Font size of "WOR$T" / "GIRL IN" on the full-size (1080 px wide) card. */
+export function headlineFontSize(ctx: CanvasRenderingContext2D) {
+  return Math.min(...HEADLINE_LINES.map((text) => fitFontSize(ctx, text, MAX_FONT_SIZE)))
+}
+
+function computeLayout(
+  ctx: CanvasRenderingContext2D,
+  options: Pick<CardOptions, 'subject' | 'location'>,
+): CardLine[] {
+  const headlineSize = headlineFontSize(ctx)
   const location = locationText(options.location) || EMPTY_LOCATION
 
   return [

@@ -49,6 +49,15 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
             <PlusIcon data-icon="inline-start" />
             Add
           </Button>
+          {/* Always shown (disabled when empty) so the input never changes width. */}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={places.length === 0}
+            onClick={() => onChange([])}
+          >
+            Clear all
+          </Button>
         </ButtonGroup>
       </form>
 
@@ -80,9 +89,6 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
               </li>
             ))}
           </ul>
-          <Button variant="ghost" size="sm" onClick={() => onChange([])}>
-            Clear all
-          </Button>
         </div>
       )}
     </div>

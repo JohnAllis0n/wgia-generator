@@ -54,7 +54,8 @@ export async function renderCardPng(
 ): Promise<Blob> {
   const [, background] = await Promise.all([
     fontReady(),
-    backgroundUrl ? loadImage(backgroundUrl) : undefined,
+    // Not kept afterwards: big animated backgrounds use a lot of memory decoded.
+    backgroundUrl ? loadImage(backgroundUrl, { keep: false }) : undefined,
   ])
   const { canvas, ctx } = createCardCanvas()
   drawCard(ctx, options, undefined, background)

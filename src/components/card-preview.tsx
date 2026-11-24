@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { cn } from 'cn'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   CARD_HEIGHT,
   CARD_WIDTH,
@@ -27,6 +29,23 @@ export function CardPreview({
   background,
 }: CardPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  // Which background URL has finished loading (shows the skeleton until then).
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
+  const backgroundLoaded = loadedUrl === background
+
+  // Publish the card's on-screen width as --card-width, so other elements
+  // (the page heading) can match the card's text size.
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return
+    const root = document.documentElement
+    const observer = new ResizeObserver(([entry]) => {
+      root.style.setProperty('--card-width', `${entry.contentRect.width}px`)
+    })
+    observer.observe(card)
+    return () => observer.disconnect()
+  }, [])
   // When the current cycle started. Reset only when the places change, so
   // switching subject or colour doesn't restart the animation.
   const startRef = useRef(0)
@@ -41,8 +60,9 @@ export function CardPreview({
   }, [places])
 
   useEffect(() => {
-    const ctx = canvasRef.current?.getContext('2d')
-    if (!ctx) return
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
 
     // With a background image, the <img> below shows it (animated GIFs play
     // natively there), so the canvas only draws the text on a clear layer.
@@ -53,10 +73,14 @@ export function CardPreview({
     let lastKey = ''
     let lastIndex = -1
     let cancelled = false
+    let fontReady = false
+    let onScreen = true
+    let running = false
 
     const tick = (now: number) => {
       if (places.length === 0) {
         drawCard(ctx, { subject, color, location: '' }, undefined, layer)
+        running = false
         return // Nothing to animate.
       }
       const frame = typingFrameAt(lengths, now - startRef.current)
@@ -70,33 +94,70 @@ export function CardPreview({
           onPlaceChangeRef.current?.(frame.index)
         }
       }
-      if (!frame.done) frameId = requestAnimationFrame(tick)
+      // Keep going while there's more to animate and the card is visible.
+      running = !frame.done && onScreen
+      if (running) frameId = requestAnimationFrame(tick)
     }
+
+    const resume = () => {
+      if (cancelled || !fontReady || running) return
+      running = true
+      frameId = requestAnimationFrame(tick)
+    }
+
+    // Pause while the card is scrolled out of view; pick up where the
+    // animation's clock says it should be when it comes back.
+    const observer = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+      if (onScreen) resume()
+    })
+    observer.observe(canvas)
 
     // Canvas text won't use the font until it has loaded, so wait for it.
     // If it fails to load, still animate (with the fallback font) and log why.
-    const start = () => {
-      if (!cancelled) frameId = requestAnimationFrame(tick)
+    const onFont = () => {
+      fontReady = true
+      resume()
     }
-    document.fonts.load(cardFont(100)).then(start, (error) => {
+    document.fonts.load(cardFont(100)).then(onFont, (error) => {
       console.error('Card font failed to load', error)
-      start()
+      onFont()
     })
 
     return () => {
       cancelled = true
+      observer.disconnect()
       cancelAnimationFrame(frameId)
     }
   }, [subject, color, places, background])
 
   return (
-    <div className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] md:max-w-[calc(85svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg">
+    <div
+      ref={cardRef}
+      className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] md:max-w-[calc(85svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg"
+    >
+      {background && !backgroundLoaded && (
+        // Placeholder while the background downloads, instead of it popping in.
+        <Skeleton className="absolute inset-0 rounded-none" />
+      )}
       {background && (
         <img
           key={background}
+          ref={(img) => {
+            // Already cached: onLoad may have fired before React attached it.
+            if (img?.complete && img.naturalWidth > 0) setLoadedUrl(background)
+          }}
           src={background}
           alt=""
-          className="absolute inset-0 size-full object-cover"
+          // The background is the main thing on screen: fetch it first.
+          fetchPriority="high"
+          decoding="async"
+          onLoad={() => setLoadedUrl(background)}
+          onError={() => setLoadedUrl(background)}
+          className={cn(
+            'absolute inset-0 size-full object-cover transition-opacity duration-300',
+            backgroundLoaded ? 'opacity-100' : 'opacity-0',
+          )}
         />
       )}
       <canvas
