@@ -4,7 +4,7 @@ export const DEFAULT_PLACES = ['America']
 const PRESETS: Record<string, string[]> = {
   ellis: [
     'The Avenues',
-    'Bransholm',
+    'Bransholme',
     'Orchard Park',
     'Cottingham',
     'Willerby',
@@ -13,7 +13,7 @@ const PRESETS: Record<string, string[]> = {
     'Gypsyville',
     'Hessle',
     'Kingswood',
-    'Southcoats',
+    'Southcoates',
     'Sutton',
     'Longhill',
   ],
