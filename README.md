@@ -1,6 +1,6 @@
 # WGIA Generator
 
-Make "WOR$T GIRL IN \<PLACE\>" cards: 1080×1920 images sized for phone stories. Type any number of places and the preview cycles through them with a typing animation. You can then download a PNG of the current place, or a GIF of the whole cycle.
+Make "WOR$T GIRL IN \<PLACE\>" cards: 1080×1920 images sized for phone stories. Type any number of places and the preview cycles through them with a typing animation. You can then download a PNG of the current place, or an MP4 video of the whole cycle.
 
 ## Features
 
@@ -11,7 +11,7 @@ Make "WOR$T GIRL IN \<PLACE\>" cards: 1080×1920 images sized for phone stories.
 - **Backgrounds:** step through the images in `public/backgrounds` with the < > buttons. Animated GIFs play in the preview.
 - **Downloads:**
   - **PNG** of the place currently on screen, including the background.
-  - **GIF** of the full typing cycle. This is only available on plain black for now.
+  - **MP4** (1080×1920, 30 fps) of the full typing cycle, with animated backgrounds moving behind the text. It needs a browser that can encode H.264 video (Chrome, Edge or Safari).
 - **Presets:** going to `/<name>` fills in a saved list of places (for example `/popcubed`).
 
 ## Getting started
@@ -46,11 +46,12 @@ To add a background, put any `.jpg`, `.png`, `.gif`, `.webp` or `.avif` file in 
 
 ## Tech
 
-[Vite](https://vite.dev), React 19, TypeScript, Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com). The card is drawn on a `<canvas>`, and GIFs are encoded in the browser with [gifenc](https://github.com/mattdesl/gifenc).
+[Vite](https://vite.dev), React 19, TypeScript, Tailwind CSS v4 and [shadcn/ui](https://ui.shadcn.com). The card is drawn on a `<canvas>`, and videos are made in the browser with [Mediabunny](https://mediabunny.dev) (loaded only when needed).
 
 - `src/lib/card.ts`: card layout and drawing
 - `src/lib/typing.ts`: typing animation timeline
-- `src/lib/export.ts`: PNG and GIF export
+- `src/lib/export.ts`: PNG and MP4 export
+- `src/lib/background-frames.ts`: steps through animated backgrounds frame by frame for the video
 - `src/components/`: UI (`ui/` holds the shadcn components)
 - `vite.config.ts`: includes the plugin that lists `public/backgrounds`
 
