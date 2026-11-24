@@ -103,6 +103,7 @@ export default function App() {
           <CardContent>
             <p className="text-center text-sm text-muted-foreground">
               Created By John Alli$son
+              Created By John Alli$on
             </p>
             <p className="text-center text-sm text-muted-foreground">
               Not affiliated with Slayyyter or Sony Music Entertainment.
