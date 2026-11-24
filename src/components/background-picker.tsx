@@ -21,9 +21,10 @@ export function BackgroundPicker({ index, onChange }: BackgroundPickerProps) {
       <Button variant="outline" size="icon" aria-label="Previous background" onClick={() => step(-1)}>
         <ChevronLeftIcon />
       </Button>
-      <ButtonGroupText className="min-w-32 justify-center tabular-nums" aria-live="polite">
-        {backgroundLabel(BACKGROUNDS[index])}
-        <span className="text-muted-foreground">
+      {/* Fixed width, so the < and > buttons don't move as names change length. */}
+      <ButtonGroupText className="w-44 justify-center tabular-nums" aria-live="polite">
+        <span className="truncate">{backgroundLabel(BACKGROUNDS[index])}</span>
+        <span className="shrink-0 text-muted-foreground">
           {index + 1}/{count}
         </span>
       </ButtonGroupText>

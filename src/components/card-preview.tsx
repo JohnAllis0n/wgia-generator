@@ -90,7 +90,7 @@ export function CardPreview({
   }, [subject, color, places, background])
 
   return (
-    <div className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg">
+    <div className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] md:max-w-[calc(85svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg">
       {background && (
         <img
           key={background}

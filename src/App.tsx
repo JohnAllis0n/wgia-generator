@@ -24,8 +24,17 @@ export default function App() {
   useTintedFavicon(color)
 
   return (
-    <div className="min-h-svh">
-      <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col items-center justify-center gap-6 p-4">
+    <main className="min-h-svh md:grid md:grid-cols-2">
+      {/*
+        The card and its background picker have their own area, centred on
+        screen. Nothing else affects their position, so adding places never
+        moves the card. On wider screens it also stays in place while the
+        controls column scrolls.
+      */}
+      <section
+        aria-label="Preview"
+        className="flex min-h-[85svh] flex-col items-center justify-center gap-3 p-4 md:sticky md:top-0 md:h-svh md:min-h-0"
+      >
         <CardPreview
           subject={subject}
           color={color}
@@ -33,9 +42,13 @@ export default function App() {
           onPlaceChange={setCurrentIndex}
           background={background}
         />
-
         <BackgroundPicker index={backgroundIndex} onChange={setBackgroundIndex} />
+      </section>
 
+      <section
+        aria-label="Options"
+        className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 px-4 pb-10 md:min-h-svh md:justify-center md:py-10"
+      >
         <ButtonGroup aria-label="Card options">
           {SUBJECTS.map((s) => (
             <Button
@@ -77,7 +90,7 @@ export default function App() {
         />
 
         <PlacesInput places={places} onChange={setPlaces} />
-      </main>
-    </div>
+      </section>
+    </main>
   )
 }

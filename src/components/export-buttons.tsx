@@ -88,11 +88,6 @@ export function ExportButtons({
           {busy === 'gif' ? `Making GIF… ${Math.round(gifProgress * 100)}%` : 'Download GIF'}
         </Button>
       </ButtonGroup>
-      {!gifAvailable && (
-        <p className="text-xs text-muted-foreground">
-          GIF download with backgrounds is coming soon.
-        </p>
-      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
