@@ -1,8 +1,9 @@
-export const DEFAULT_PLACES = ['Pop³', 'America']
+export const DEFAULT_PLACES = ['America']
 
 /** Place lists prefilled when the page is opened at /<name>. */
 const PRESETS: Record<string, string[]> = {
   popcubed: [
+    'Pop³',
     'The Avenues',
     'Bransholme',
     'Orchard Park',
