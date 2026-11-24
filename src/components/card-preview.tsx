@@ -35,7 +35,7 @@ export function CardPreview(props: CardOptions) {
       ref={canvasRef}
       width={CARD_WIDTH}
       height={CARD_HEIGHT}
-      className="aspect-9/16 h-auto max-h-[85svh] w-full max-w-full rounded-lg object-contain shadow-lg"
+      className="aspect-9/16 h-auto w-full max-w-[calc(70svh*9/16)] rounded-lg shadow-lg"
     />
   )
 }

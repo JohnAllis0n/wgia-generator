@@ -1,3 +1,5 @@
+import { SUBJECTS } from '@/lib/options'
+
 export const CARD_WIDTH = 1080
 export const CARD_HEIGHT = 1920
 export const CARD_FONT = 'Futura Bold Oblique'
@@ -10,10 +12,10 @@ const LINE_HEIGHT = 0.95
 /** Approximate cap height of Futura, as a multiple of font size. */
 const CAP_HEIGHT = 0.72
 /**
- * The headline is sized to fit the widest subject, so switching
- * between "GIRL" and "MAN" never changes the text size.
+ * Every headline line, for every subject. The headline is sized so the widest
+ * of these fits, so switching subject never changes the text size.
  */
-const HEADLINE_SIZING_TEXT = 'GIRL IN'
+const HEADLINE_LINES = ['WOR$T', ...SUBJECTS.map((s) => `${s.toUpperCase()} IN`)]
 
 export interface CardOptions {
   subject: string
@@ -50,8 +52,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, options: CardOptions) {
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
 
   const headlineSize = Math.min(
-    fitFontSize(ctx, 'WOR$T', maxWidth, MAX_FONT_SIZE),
-    fitFontSize(ctx, HEADLINE_SIZING_TEXT, maxWidth, MAX_FONT_SIZE),
+    ...HEADLINE_LINES.map((text) => fitFontSize(ctx, text, maxWidth, MAX_FONT_SIZE)),
   )
   const location = options.location.toUpperCase()
   const locationSize = fitFontSize(ctx, location, maxWidth, headlineSize)
@@ -69,10 +70,15 @@ export function drawCard(ctx: CanvasRenderingContext2D, options: CardOptions) {
   let baseline = (CARD_HEIGHT - blockHeight) / 2 + lines[0].size * CAP_HEIGHT
 
   ctx.fillStyle = options.color
+  ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   lines.forEach((line, i) => {
     if (i > 0) baseline += line.size * LINE_HEIGHT
     ctx.font = cardFont(line.size)
-    ctx.fillText(line.text, PADDING_X, baseline)
+    // Centre on the visible ink rather than the advance width, so the
+    // oblique lean doesn't pull the text off-centre.
+    const m = ctx.measureText(line.text)
+    const x = (CARD_WIDTH - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft)) / 2
+    ctx.fillText(line.text, x, baseline)
   })
 }
