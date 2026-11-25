@@ -30,6 +30,8 @@ export function ExportButtons({
   const [busy, setBusy] = useState<'png' | 'video' | null>(null)
   const [videoProgress, setVideoProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  /** Read out by screen readers: what's happening with the download. */
+  const [status, setStatus] = useState('')
   // Until checked, assume the browser can make videos (most can).
   const [videoSupported, setVideoSupported] = useState(true)
 
@@ -48,10 +50,13 @@ export function ExportButtons({
   async function run(kind: 'png' | 'video', label: string, task: () => Promise<void>) {
     setBusy(kind)
     setError(null)
+    setStatus(`Making ${label}…`)
     try {
       await task()
+      setStatus(`${label} downloaded.`)
     } catch (e) {
       console.error(e)
+      setStatus('')
       setError(`Couldn't create the ${label}. Please try again.`)
     } finally {
       setBusy(null)
@@ -123,7 +128,14 @@ export function ExportButtons({
           This browser can't make videos. Try Chrome, Edge or Safari.
         </p>
       )}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <p role="status" className="sr-only">
+        {status}
+      </p>
     </div>
   )
 }

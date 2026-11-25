@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import { PlusIcon, XIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ interface PlacesInputProps {
 
 export function PlacesInput({ places, onChange }: PlacesInputProps) {
   const [draft, setDraft] = useState('')
+  const errorId = useId()
 
   const trimmed = draft.trim().replace(/\s+/g, ' ')
   const isDuplicate = places.some(
@@ -41,6 +42,7 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
             placeholder="Add a place..."
             aria-label="Place"
             aria-invalid={isDuplicate || undefined}
+            aria-describedby={isDuplicate ? errorId : undefined}
             maxLength={MAX_PLACE_LENGTH}
             autoComplete="off"
             enterKeyHint="done"
@@ -67,7 +69,9 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
       </form>
 
       {isDuplicate && (
-        <p className="text-sm text-destructive">That place is already in the list.</p>
+        <p id={errorId} role="alert" className="text-sm text-destructive">
+          That place is already in the list.
+        </p>
       )}
 
       {places.length > 0 && (
@@ -85,7 +89,8 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
                     variant="ghost"
                     size="icon-xs"
                     className="rounded-full"
-                    aria-label={`Remove ${place}`}                    onClick={() => removePlace(i)}
+                    aria-label={`Remove ${place}`}
+                    onClick={() => removePlace(i)}
                   >
                     <XIcon />
                   </Button>

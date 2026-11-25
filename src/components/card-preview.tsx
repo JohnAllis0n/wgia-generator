@@ -131,9 +131,16 @@ export function CardPreview({
     }
   }, [subject, color, places, background])
 
+  // What the card says, for screen readers ("Worst" rather than "Wor$t").
+  const label = places.length
+    ? `Card preview: Worst ${subject} in ${places.join(', ')}`
+    : `Card preview: Worst ${subject} in… (no places added yet)`
+
   return (
     <div
       ref={cardRef}
+      role="img"
+      aria-label={label}
       className="relative aspect-9/16 w-full max-w-[calc(var(--app-height)*0.7*9/16)] md:max-w-[calc(min(var(--app-height)*0.85,var(--app-height)-76px)*9/16)] overflow-hidden rounded-lg bg-black shadow-lg"
     >
       {background && !backgroundLoaded && (
@@ -162,6 +169,7 @@ export function CardPreview({
       )}
       <canvas
         ref={canvasRef}
+        aria-hidden
         width={CARD_WIDTH}
         height={CARD_HEIGHT}
         className="absolute inset-0 size-full"

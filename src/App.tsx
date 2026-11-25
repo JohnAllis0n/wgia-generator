@@ -86,6 +86,7 @@ export default function App() {
                     key={c.value}
                     variant={color === c.value ? 'default' : 'outline'}
                     aria-pressed={color === c.value}
+                    aria-label={`${c.label} (${c.name})`}
                     onClick={() => setColor(c.value)}
                     className="flex-1"
                   >
@@ -117,7 +118,9 @@ export default function App() {
           <Card size="sm" className="w-[max(var(--card-width),20rem)] max-w-full">
             <CardContent>
               <p className="text-center text-sm text-muted-foreground">
-                Created By John Alli<span style={{ color: COLORS[0].value }}>$</span>on
+                Created By John Alli
+                <span aria-hidden style={{ color: COLORS[0].value }}>$</span>
+                <span className="sr-only">s</span>on
               </p>
               <p className="text-center text-sm text-muted-foreground">
                 Not affiliated with Slayyyter or Sony Music Entertainment.

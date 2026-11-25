@@ -49,6 +49,7 @@ export function PageHeading({ className }: { className?: string }) {
     // A size container, so the heading can fit itself to its own width (cqw).
     <div className={cn('@container w-full', className)}>
       <h1
+        aria-label="Worst Girl Generator"
         className="text-center leading-[0.95] uppercase transition-opacity duration-300"
         style={{
           fontFamily: '"Futura Bold Oblique", sans-serif',
