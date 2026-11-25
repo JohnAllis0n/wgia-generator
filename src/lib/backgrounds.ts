@@ -4,7 +4,7 @@ import backgroundUrls from 'virtual:backgrounds'
 export const BACKGROUNDS = backgroundUrls
 
 /** The background the card starts with. */
-const DEFAULT_BACKGROUND_FILE = 'Fireworks.gif'
+const DEFAULT_BACKGROUND_FILE = 'Firework$.webp'
 
 /** The file name from a background URL, e.g. "Fireworks 2.gif". */
 function backgroundFileName(url: string) {
