@@ -37,7 +37,7 @@ export default function App() {
       */}
       <section
         aria-label="Preview"
-        className="flex min-h-[85svh] flex-col items-center justify-center gap-3 p-4 md:sticky md:top-0 md:h-svh md:min-h-0"
+        className="flex min-h-[calc(var(--app-height)*0.85)] flex-col items-center justify-center gap-3 p-4 md:sticky md:top-0 md:h-(--app-height) md:min-h-0"
       >
         {/* On phones the heading sits above the card; on desktop, above the controls. */}
         <PageHeading className="mb-1 md:hidden" />
@@ -63,8 +63,8 @@ export default function App() {
         <div className="flex w-full max-w-xl flex-col items-center gap-6 md:min-h-[calc(var(--card-width)*16/9+44px)] md:justify-between">
           <PageHeading className="hidden md:block" />
 
-          {/* Both cards match the preview card's width (--card-width, set by CardPreview). */}
-          <Card className="w-(--card-width) max-w-full">
+          {/* Both cards match the preview card's width (--card-width, set by CardPreview), but never get narrower than 20rem, so the options stay usable when the card is small (e.g. a phone in landscape). */}
+          <Card className="w-[max(var(--card-width),20rem)] max-w-full">
             <CardContent className="flex flex-col items-center gap-6">
               <ButtonGroup aria-label="Card options" className="w-full">
                 {SUBJECTS.map((s) => (
@@ -114,7 +114,7 @@ export default function App() {
             </CardFooter>
           </Card>
 
-          <Card size="sm" className="w-(--card-width) max-w-full">
+          <Card size="sm" className="w-[max(var(--card-width),20rem)] max-w-full">
             <CardContent>
               <p className="text-center text-sm text-muted-foreground">
                 Created By John Alli<span style={{ color: COLORS[0].value }}>$</span>on

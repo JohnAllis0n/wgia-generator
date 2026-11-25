@@ -14,6 +14,11 @@
   font-display: block;
 }
 
+/* Window height that doesn't change while scrolling; set by stable-viewport-height.ts. */
+:root {
+  --app-height: 100svh;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

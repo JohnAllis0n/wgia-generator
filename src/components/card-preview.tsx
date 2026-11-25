@@ -134,7 +134,7 @@ export function CardPreview({
   return (
     <div
       ref={cardRef}
-      className="relative aspect-9/16 w-full max-w-[calc(70svh*9/16)] md:max-w-[calc(85svh*9/16)] overflow-hidden rounded-lg bg-black shadow-lg"
+      className="relative aspect-9/16 w-full max-w-[calc(var(--app-height)*0.7*9/16)] md:max-w-[calc(min(var(--app-height)*0.85,var(--app-height)-76px)*9/16)] overflow-hidden rounded-lg bg-black shadow-lg"
     >
       {background && !backgroundLoaded && (
         // Placeholder while the background downloads, instead of it popping in.
