@@ -7,8 +7,8 @@ import { PlacesInput } from '@/components/places-input'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { useFavicon } from '@/hooks/use-favicon'
 import { usePrefetchBackgrounds } from '@/hooks/use-prefetch-backgrounds'
-import { useTintedFavicon } from '@/hooks/use-tinted-favicon'
 import { BACKGROUNDS, DEFAULT_BACKGROUND_INDEX } from '@/lib/backgrounds'
 import { COLORS, SUBJECTS, type CardColor, type Subject } from '@/lib/options'
 import { placesForPath } from '@/lib/presets'
@@ -24,7 +24,7 @@ export default function App() {
   const [backgroundIndex, setBackgroundIndex] = useState(DEFAULT_BACKGROUND_INDEX)
   const background = BACKGROUNDS[backgroundIndex]
 
-  useTintedFavicon(color)
+  useFavicon(color)
   usePrefetchBackgrounds(backgroundIndex)
 
   return (

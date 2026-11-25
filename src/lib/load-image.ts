@@ -11,7 +11,7 @@ function fetchImage(src: string) {
 
 /**
  * Loads an image. By default it's kept, so later calls reuse it (good for
- * small images used often, like the favicon). Pass `{ keep: false }` for
+ * small images used often). Pass `{ keep: false }` for
  * large one-off uses, such as drawing a background into a download, so the
  * decoded image can be freed afterwards.
  */
