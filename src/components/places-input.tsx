@@ -52,7 +52,7 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
           {/* Always shown (disabled when empty) so the input never changes width. */}
           <Button
             type="button"
-            variant="outline"
+            variant="destructive"
             disabled={places.length === 0}
             onClick={() => onChange([])}
           >
@@ -80,8 +80,7 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
                     variant="ghost"
                     size="icon-xs"
                     className="rounded-full"
-                    aria-label={`Remove ${place}`}
-                    onClick={() => removePlace(i)}
+                    aria-label={`Remove ${place}`}                    onClick={() => removePlace(i)}
                   >
                     <XIcon />
                   </Button>

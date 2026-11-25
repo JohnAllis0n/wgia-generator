@@ -82,63 +82,12 @@ export function typingFrameAt(
   return { index: 0, visible: lengths[0], caret: false }
 }
 
-export interface TypingStep {
-  frame: TypingFrame
-  durationMs: number
-}
-
-/** Times (ms from 0) at which the animation can change, for one full run. */
-function changeTimes(lengths: number[]) {
-  const times: number[] = []
-  const every = (from: number, to: number, step: number) => {
-    for (let t = from; t < to; t += step) times.push(t)
-  }
-
-  if (lengths.length === 1) {
-    every(0, lengths[0] * TYPING.typeCharMs + 1, TYPING.typeCharMs)
-    return times
-  }
-
-  let offset = 0
-  for (const length of lengths) {
-    const typeEnd = offset + length * TYPING.typeCharMs
-    const holdEnd = typeEnd + TYPING.holdMs
-    const deleteEnd = holdEnd + length * TYPING.deleteCharMs
-    every(offset, typeEnd, TYPING.typeCharMs)
-    every(typeEnd, holdEnd, TYPING.blinkMs)
-    every(holdEnd, deleteEnd, TYPING.deleteCharMs)
-    every(deleteEnd, deleteEnd + TYPING.gapMs, TYPING.blinkMs)
-    offset += placeDuration(length)
-  }
-  times.push(offset)
-  return times
-}
-
 /**
- * Every distinct step of one full run of the animation, with how long each
- * is shown: one loop for several places, or the single type-out for one
- * place (its last step is the finished card). Uses typingFrameAt, so it
- * always matches the live preview. Used to build the GIF.
+ * Length of one full run of the animation, in ms: one loop through every
+ * place, or for a single place, typing it out and then `finalHoldMs` on the
+ * finished card. `lengths` must not be empty.
  */
-export function typingTimeline(lengths: number[], finalHoldMs = 3000): TypingStep[] {
-  const times = changeTimes(lengths)
-  const steps: TypingStep[] = []
-  for (let i = 0; i < times.length; i++) {
-    const frame = typingFrameAt(lengths, times[i])
-    const end = times[i + 1]
-    const durationMs = end === undefined ? finalHoldMs : end - times[i]
-    if (end === undefined && !frame.done) break // loop end: wraps to the start
-    const prev = steps.at(-1)
-    if (
-      prev &&
-      prev.frame.index === frame.index &&
-      prev.frame.visible === frame.visible &&
-      prev.frame.caret === frame.caret
-    ) {
-      prev.durationMs += durationMs
-    } else {
-      steps.push({ frame, durationMs })
-    }
-  }
-  return steps
+export function typingDuration(lengths: number[], finalHoldMs = 3000) {
+  if (lengths.length === 1) return lengths[0] * TYPING.typeCharMs + finalHoldMs
+  return lengths.reduce((sum, length) => sum + placeDuration(length), 0)
 }

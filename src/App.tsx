@@ -6,6 +6,7 @@ import { PageHeading } from '@/components/page-heading'
 import { PlacesInput } from '@/components/places-input'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { usePrefetchBackgrounds } from '@/hooks/use-prefetch-backgrounds'
 import { useTintedFavicon } from '@/hooks/use-tinted-favicon'
 import { BACKGROUNDS, DEFAULT_BACKGROUND_INDEX } from '@/lib/backgrounds'
@@ -52,63 +53,78 @@ export default function App() {
 
       <section
         aria-label="Options"
-        className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 px-4 pb-10 md:min-h-svh md:max-w-xl md:justify-center md:py-10"
+        className="flex w-full flex-col items-center px-4 pb-10 md:min-h-svh md:justify-center md:py-4"
       >
-        <PageHeading className="hidden md:block" />
+        {/*
+          On wider screens this block is centred like the preview and at least
+          as tall as it (card, 12px gap, 32px picker), so the heading lines up
+          with the top of the card and the credits with the bottom of the picker.
+        */}
+        <div className="flex w-full max-w-xl flex-col items-center gap-6 md:min-h-[calc(var(--card-width)*16/9+44px)] md:justify-between">
+          <PageHeading className="hidden md:block" />
 
-        <ButtonGroup aria-label="Card options">
-          {SUBJECTS.map((s) => (
-            <Button
-              key={s}
-              variant={subject === s ? 'default' : 'outline'}
-              aria-pressed={subject === s}
-              onClick={() => setSubject(s)}
-              className="capitalize"
-            >
-              {s}
-            </Button>
-          ))}
+          {/* Both cards match the preview card's width (--card-width, set by CardPreview). */}
+          <Card className="w-(--card-width) max-w-full">
+            <CardContent className="flex flex-col items-center gap-6">
+              <ButtonGroup aria-label="Card options" className="w-full">
+                {SUBJECTS.map((s) => (
+                  <Button
+                    key={s}
+                    variant={subject === s ? 'default' : 'outline'}
+                    aria-pressed={subject === s}
+                    onClick={() => setSubject(s)}
+                    className="flex-1 capitalize"
+                  >
+                    {s}
+                  </Button>
+                ))}
 
-          <ButtonGroupSeparator />
+                <ButtonGroupSeparator />
 
-          {COLORS.map((c) => (
-            <Button
-              key={c.value}
-              variant={color === c.value ? 'default' : 'outline'}
-              aria-pressed={color === c.value}
-              onClick={() => setColor(c.value)}
-            >
-              <span
-                aria-hidden
-                className="size-3.5 rounded-full border border-black/20"
-                style={{ backgroundColor: c.value }}
+                {COLORS.map((c) => (
+                  <Button
+                    key={c.value}
+                    variant={color === c.value ? 'default' : 'outline'}
+                    aria-pressed={color === c.value}
+                    onClick={() => setColor(c.value)}
+                    className="flex-1"
+                  >
+                    <span
+                      aria-hidden
+                      className="size-3.5 rounded-full border border-black/20"
+                      style={{ backgroundColor: c.value }}
+                    />
+                    {c.name}
+                  </Button>
+                ))}
+              </ButtonGroup>
+
+              <div className="w-full">
+                <PlacesInput places={places} onChange={setPlaces} />
+              </div>
+            </CardContent>
+            <CardFooter className="justify-center">
+              <ExportButtons
+                subject={subject}
+                color={color}
+                places={places}
+                currentIndex={currentIndex}
+                background={background}
               />
-              {c.name}
-            </Button>
-          ))}
-        </ButtonGroup>
+            </CardFooter>
+          </Card>
 
-        <ExportButtons
-          subject={subject}
-          color={color}
-          places={places}
-          currentIndex={currentIndex}
-          background={background}
-        />
-
-        <div className="w-full max-w-sm">
-          <PlacesInput places={places} onChange={setPlaces} />
+          <Card size="sm" className="w-(--card-width) max-w-full">
+            <CardContent>
+              <p className="text-center text-sm text-muted-foreground">
+                Created By John Alli<span style={{ color: COLORS[0].value }}>$</span>on
+              </p>
+              <p className="text-center text-sm text-muted-foreground">
+                Not affiliated with Slayyyter or Sony Music Entertainment.
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <Card size="sm" className="w-full">
-          <CardContent>
-            <p className="text-center text-sm text-muted-foreground">
-              Created By John Alli$on
-            </p>
-            <p className="text-center text-sm text-muted-foreground">
-              Not affiliated with Slayyyter or Sony Music Entertainment.
-            </p>
-          </CardContent>
-        </Card>
       </section>
     </main>
   )

@@ -1,3 +1,4 @@
+import type { BackgroundImage } from '@/lib/background-frames'
 import { SUBJECTS } from '@/lib/options'
 
 export const CARD_WIDTH = 1080
@@ -263,16 +264,24 @@ function drawCaret(
  * black (undefined), or nothing at all ('transparent'), for when the live
  * preview shows the background as a separate element underneath.
  */
-export type CardBackground = HTMLImageElement | 'transparent' | undefined
+export type CardBackground = BackgroundImage | 'transparent' | undefined
+
+/** Pixel size of a background image, whatever kind it is. */
+function imageSize(image: BackgroundImage) {
+  if (image instanceof HTMLImageElement) return [image.naturalWidth, image.naturalHeight]
+  if (image instanceof ImageBitmap) return [image.width, image.height]
+  return [image.displayWidth, image.displayHeight]
+}
 
 /** Draws an image scaled to cover the whole card, cropping the overflow evenly. */
-function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
-  const scale = Math.max(
-    CARD_WIDTH / image.naturalWidth,
-    CARD_HEIGHT / image.naturalHeight,
-  )
-  const width = image.naturalWidth * scale
-  const height = image.naturalHeight * scale
+function drawCover(ctx: CanvasRenderingContext2D, image: BackgroundImage) {
+  const [naturalWidth, naturalHeight] = imageSize(image)
+  const scale = Math.max(CARD_WIDTH / naturalWidth, CARD_HEIGHT / naturalHeight)
+  const width = naturalWidth * scale
+  const height = naturalHeight * scale
+  // Most backgrounds are much smaller than the card, so use the best scaling.
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(image, (CARD_WIDTH - width) / 2, (CARD_HEIGHT - height) / 2, width, height)
 }
 

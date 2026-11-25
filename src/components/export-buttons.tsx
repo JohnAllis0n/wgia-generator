@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FilmIcon, ImageIcon, LoaderCircleIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import {
+  canRenderVideo,
   downloadBlob,
   exportFileName,
-  renderCardGif,
   renderCardPng,
+  renderCardVideo,
 } from '@/lib/export'
 
 interface ExportButtonsProps {
@@ -26,68 +27,102 @@ export function ExportButtons({
   currentIndex,
   background,
 }: ExportButtonsProps) {
-  // GIF export doesn't support backgrounds yet (on hold), so it's only
-  // offered for the plain black card.
-  const gifAvailable = !background
-  const [busy, setBusy] = useState<'png' | 'gif' | null>(null)
-  const [gifProgress, setGifProgress] = useState(0)
+  const [busy, setBusy] = useState<'png' | 'video' | null>(null)
+  const [videoProgress, setVideoProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  // Until checked, assume the browser can make videos (most can).
+  const [videoSupported, setVideoSupported] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    canRenderVideo().then((ok) => {
+      if (!cancelled) setVideoSupported(ok)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const currentPlace = places[currentIndex] ?? places[0] ?? ''
 
-  async function run(kind: 'png' | 'gif', task: () => Promise<void>) {
+  async function run(kind: 'png' | 'video', label: string, task: () => Promise<void>) {
     setBusy(kind)
     setError(null)
     try {
       await task()
     } catch (e) {
       console.error(e)
-      setError(`Couldn't create the ${kind.toUpperCase()}. Please try again.`)
+      setError(`Couldn't create the ${label}. Please try again.`)
     } finally {
       setBusy(null)
     }
   }
 
   const downloadPng = () =>
-    run('png', async () => {
+    run('png', 'PNG', async () => {
       const blob = await renderCardPng({ subject, color, location: currentPlace }, background)
       downloadBlob(blob, `${exportFileName(subject, currentPlace)}.png`)
     })
 
-  const downloadGif = () =>
-    run('gif', async () => {
-      setGifProgress(0)
-      const blob = await renderCardGif({ subject, color, places }, setGifProgress)
-      // e.g. "worst-girl-in-13-places.gif", or the place's name if only one.
+  const downloadVideo = () =>
+    run('video', 'video', async () => {
+      setVideoProgress(0)
+      const blob = await renderCardVideo({ subject, color, places, background }, setVideoProgress)
+      // e.g. "worst-girl-in-13-places.mp4", or the place's name if only one.
       const name = places.length > 1 ? `${places.length} places` : currentPlace
-      downloadBlob(blob, `${exportFileName(subject, name)}.gif`)
+      downloadBlob(blob, `${exportFileName(subject, name)}.mp4`)
     })
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <ButtonGroup aria-label="Download">
-        <Button variant="outline" onClick={downloadPng} disabled={busy !== null}>
+    <div className="@container flex w-full flex-col items-center gap-2">
+      {/* Full width, like the add-place group. On narrow cards the word
+          "Download" is dropped so both buttons still fit. */}
+      <ButtonGroup aria-label="Download" className="w-full">
+        <Button
+          variant="outline"
+          className="min-w-0 flex-1"
+          onClick={downloadPng}
+          aria-label="Download PNG"
+          disabled={busy !== null}
+        >
           {busy === 'png' ? (
             <LoaderCircleIcon data-icon="inline-start" className="animate-spin" />
           ) : (
             <ImageIcon data-icon="inline-start" />
           )}
-          Download PNG
+          <span>
+            <span className="hidden @[18rem]:inline">Download </span>PNG
+          </span>
         </Button>
         <Button
           variant="outline"
-          onClick={downloadGif}
-          disabled={busy !== null || !gifAvailable}
-          title={gifAvailable ? undefined : 'GIF download with backgrounds is coming soon'}
+          className="min-w-0 flex-1"
+          onClick={downloadVideo}
+          aria-label={busy === 'video' ? undefined : 'Download MP4'}
+          disabled={busy !== null || !videoSupported}
         >
-          {busy === 'gif' ? (
+          {busy === 'video' ? (
             <LoaderCircleIcon data-icon="inline-start" className="animate-spin" />
           ) : (
             <FilmIcon data-icon="inline-start" />
           )}
-          {busy === 'gif' ? `Making GIF… ${Math.round(gifProgress * 100)}%` : 'Download GIF'}
+          {busy === 'video' ? (
+            <span>
+              <span className="hidden @[18rem]:inline">Making video… </span>
+              {Math.round(videoProgress * 100)}%
+            </span>
+          ) : (
+            <span>
+              <span className="hidden @[18rem]:inline">Download </span>MP4
+            </span>
+          )}
         </Button>
       </ButtonGroup>
+      {!videoSupported && (
+        <p className="text-sm text-muted-foreground">
+          This browser can't make videos. Try Chrome, Edge or Safari.
+        </p>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
