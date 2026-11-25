@@ -49,10 +49,15 @@ export function PlacesInput({ places, onChange }: PlacesInputProps) {
             <PlusIcon data-icon="inline-start" />
             Add
           </Button>
-          {/* Always shown (disabled when empty) so the input never changes width. */}
+          {/*
+            Always shown (disabled when empty) so the input never changes width.
+            The destructive style has a transparent border, so it gets a red one
+            here to look the same size as the outlined input and Add button.
+          */}
           <Button
             type="button"
             variant="destructive"
+            className="border-destructive/30 dark:border-destructive/40"
             disabled={places.length === 0}
             onClick={() => onChange([])}
           >
