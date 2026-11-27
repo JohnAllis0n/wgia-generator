@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useFavicon } from '@/hooks/use-favicon'
-import { usePrefetchBackgrounds } from '@/hooks/use-prefetch-backgrounds'
 import { BACKGROUNDS, DEFAULT_BACKGROUND_INDEX } from '@/lib/backgrounds'
 import { COLORS, SUBJECTS, type CardColor, type Subject } from '@/lib/options'
 import { placesForPath } from '@/lib/presets'
@@ -25,7 +24,6 @@ export default function App() {
   const background = BACKGROUNDS[backgroundIndex]
 
   useFavicon(color)
-  usePrefetchBackgrounds(backgroundIndex)
 
   return (
     <main className="min-h-svh md:grid md:grid-cols-2">
