@@ -1,7 +1,7 @@
 {
   "name": "wgia-generator",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,7 +21,7 @@
     "@tailwindcss/vite": "^4.3.5",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
-    "lucide-react": "^1.81.0",
+    "lucide-react": "^1.82.0",
     "mediabunny": "^1.66.5",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
